@@ -1,0 +1,211 @@
+---
+title: "Homework 5"
+author: "Victor Aluko"
+date: "18 March 2017"
+output:
+  html_document:
+    code_folding: hide
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Exercise 1
+
+For this Exercise, I generated the FP-Growth tree as shown below:
+
+![](C:/devstore/data_mining/homework5/fp_growth_tree.jpg)
+
+From the FP-Growth tree, the most frequent 3-element itemsets are: B C E, C D E and A C D. One thing that was consistent from the result is that B and C always appeared together in the growth line. From the count of B(4) and C(4), it was consistent that they always followed.
+
+Also there was a bit of consistency between C(4) and E(3)
+
+## Exercise 2
+
+The vertical layout for the elements of the itemset is shown below:
+
+Itemset | Occurence
+------- | ---------
+  A     |  2, 5, 9
+  B     |  3, 4, 8, 10
+  C     |  1, 3, 4, 5, 6, 7, 8, 9, 10
+  D     |  1, 2, 4, 5, 6
+  E     |  1, 3, 4, 7, 8, 10
+  
+Based on this vertical layout, we can generate a contingency table for BC -> E as shown below:
+
+items    |   E   |  not E  |  Total
+-------- | ----- | ------- | -------
+   B C   |   4   |   0     |    4
+ not B C |   2   |   6     |    8
+-------- | ----- | ------- | -------
+  Total  |   6   |   6     |    12
+  
+I was able to use the vertical layout to determine the availability points to generate the contigency table.
+
+The lift can be calculated as follows:
+ Lift {BC->E} = P(BC->E)/(P(BC) * P(E))
+ Lift = 4 / (4 * 6) = 0.1667
+ 
+The Odds ratio can be calculated as follows:
+ Odds Ratio = 4 * 6/(2 \* 0) = Infinity
+ 
+The Correlation Measure is calculated as follows:
+ Correlation Measure = 12 \* 4 - 4 * 6 / ((4 \* 8 \* 6 \* 6) ^ 1/2)
+ Correlation Measure = 0.7071
+ 
+## Exercise 3
+
+In order to generate the data, I created 2 random number generators to generate numbers between 50-99 and 1500-3000. The code for the generators are shown below:
+
+```{r echo=TRUE}
+big_num_gen <- function() {
+  runif(1, 1500, 3000)
+}
+
+small_num_gen <- function() {
+  runif(1, 50, 99)
+}
+```
+ 
+The with these generators, I created 4 functions, to generate with zero, one, two and thress small numbers respectively. In all but the zero small number functions, I used the sample fuinction ro randomize the ordering of the data. Thus, the small number ordering in thesefunctions would be placed at anywhere between the 4 possible slots. I then returned the data as a matrix to generate the contingency table The codes for the functions are below:
+
+```{r echo=TRUE}
+
+no_small <- function() {
+  r1 <- big_num_gen()
+  r2 <- big_num_gen()
+  r3 <- big_num_gen()
+  
+  r4 <-  10000 - r1 - r2 - r3
+  
+  matrix(c(r1, r2, r3, r4), 2, 2)
+}
+
+one_small <- function() {
+  r1 <- small_num_gen()
+  r2 <- big_num_gen()
+  r3 <- big_num_gen()
+  r4 <-  10000 - r1 - r2 - r3
+  
+  matrix(sample(c(r1, r2, r3, r4)), nrow = 2)
+}
+
+two_small <- function() {
+  r1 <- small_num_gen()
+  r2 <- small_num_gen()
+  r3 <- big_num_gen()
+  r4 <-  10000 - r1 - r2 - r3
+  
+  matrix(sample(c(r1, r2, r3, r4)), nrow = 2)
+}
+
+three_small <- function() {
+  r1 <- small_num_gen()
+  r2 <- small_num_gen()
+  r3 <- small_num_gen()
+  r4 <-  10000 - r1 - r2 - r3
+  
+  matrix(sample(c(r1, r2, r3, r4)), nrow = 2)
+}
+
+```
+
+I then used replicate to call each of these functions 2500 times in order to generate a total of 10000 records of contingency tables. The code used for the generation is as follows:
+
+```{r echo=TRUE}
+generated_tables = vector(length = 10000)
+
+generated_tables[1:2500] = replicate(2500, no_small(), simplify = FALSE)
+generated_tables[2501:5000] = replicate(2500, one_small(), simplify = FALSE)
+generated_tables[5001:7500] = replicate(2500, two_small(), simplify = FALSE)
+generated_tables[7501:10000] = replicate(2500, three_small(), simplify = FALSE)
+
+```
+
+With these data now generated, I can now go ahead to use the scatterplot package to visualize my data. This can be seen below:
+
+```{r echo=TRUE}
+library("scatterplot3d")
+
+GenPlotData <- function(lst) {
+  sorted = sort(as.vector(as.matrix(as.data.frame(lst))))
+  data.frame(gen1 = sorted[1], gen2 = sorted[2], gen3 = sorted[3])
+}
+
+plot_data <- do.call(rbind, lapply(generated_tables, GenPlotData))
+
+scatterplot3d(plot_data, pch = 16, angle = 55, color="steelblue", 
+              xlab = "Generated 1", ylab = "Generated 2", zlab = "Generated 3",
+              grid=TRUE, main = "Scatter 3D plot of the random generated values"
+              )
+
+```
+
+
+## Exercise 4
+
+Based on the generated data, I calculated the lift, odds_ratio and correlation for each of the records and then sorted differently by the lift, odds_ratio and correlation. From what I saw, the contingency tables with high odds ratio were the contigency tables with two small values. 
+
+
+```{r echo=FALSE}
+
+Calc_Lift <- function(mtx) {
+  Pt1 = mtx[1,1] + mtx[1,2]
+  Pt2 = mtx[1,1] + mtx[2,1]
+  mtx[1,1] / (Pt1 * Pt2)
+}
+
+Calc_OddsRatio <- function(mtx) {
+  (mtx[1,1] * mtx[2,2]) / (mtx[1,2] * mtx[2,1])
+}
+
+Calc_Correlation <- function(mtx) {
+  Pr1 = mtx[1,1] + mtx[1,2]
+  Pr2 = mtx[2,1] + mtx[2,2]
+  Pc1 = mtx[1,1] + mtx[2,1]
+  Pc2 = mtx[1,2] + mtx[2,2]
+  
+  Nt = Pr1 + Pr2
+  
+  ((mtx[1,1] * Nt) - (Pr1 * Pc2)) / sqrt(Pr1 * Pr2 * Pc1 * Pc2)
+}
+
+GenStats <- function(mt) {
+  data.frame(lift = Calc_Lift(mt), 
+             odds_ratio = Calc_OddsRatio(mt),
+             correlation = Calc_Correlation(mt)
+             )
+}
+
+```
+
+Below are the highest odds ratios
+
+```{r echo=FALSE}
+generated_stats <- do.call(rbind, lapply(generated_tables, GenStats))
+
+lift_sorted_stats = generated_stats[with(generated_stats, order(-lift)), ]
+head(lift_sorted_stats)
+```
+
+The contingency tables with the highest lift were the contingency tables with 3 small values. The lifts are shown below:
+
+```{r echo=FALSE}
+odds_ratio_sorted_stats = generated_stats[with(generated_stats, order(-odds_ratio)), ]
+head(odds_ratio_sorted_stats)
+```
+
+
+The contingency tables with the highest Correlation are the contingency tables with 3 small values also. The top correlation values are shown below:
+
+```{r echo=FALSE}
+correlation_sorted_stats = generated_stats[with(generated_stats, order(-correlation)), ]
+head(correlation_sorted_stats)
+```
+
+From this data, it shows us that Items with higher price distinction are likely to be found together and bought at the same time, rather than items which are very similar
+
+## Exercise 5
+

@@ -1,0 +1,335 @@
+---
+title: "homework9"
+author: "Victor Aluko"
+date: "April 25, 2017"
+output:
+  html_document:
+    code_folding: hide
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r echo=FALSE}
+library(rJava)
+library(RWeka)
+library(e1071)
+library(randomForest)
+library(plotrix)
+```
+
+## Exercise 1
+
+Solved below:
+
+![Exercise 1](/home/victor/Documents/dm_homeworks/homework9/ex1_manual.jpg) 
+
+## Exercise 2
+
+The essence of Machine Learning is to get more from less. 
+A classifier is a system that inputs (typically) a vector of discrete and/or continuous feature values and outputs a single discrete value, the class
+
+Learning = Representation + Evaluation + optimization
+
+ML consists of combinations of just three components. The components are:
+1. Representation: A classifier must be represented in some formal language that the computer can handle.
+2. Evaluation: An evaluation function (scoring function) is needed to distinguish good classifiers from bad ones.
+3. Optimization: The choice of optimization technique is key to the efficiency of the learner, and also helps determine the classifier produced if the evaluation function has more than one optimum. It is common for new learners to start out using off-the-shelf optimizers, which are later replaced by custom-designed ones
+
+One of the most common mistakes is testing a classifier with the same data used for training.
+Overfitting happens when you train the learner to attain 100% accuracy on the training data but 50% accuracy on the test data. Instead it could have attained 75% on both training and test data. 
+Overfitting comes with Bias and Variance. Bias is the tendency to consistently learn the same thing wrongly while Variance is the tendency to learn random things irrespective of there relevance. 
+
+Having a more powerful learner may not necessarily mean it is better than a less powerful one.
+Cross-validation can help to combat over-fitting. However, it could also become a detriment since if we use it to make too many parameter choices it can itself start to overfit.
+Another option to combat overfitting is to perform a statistical significance test like chi-square before adding new structure, to decide whether the distribution of the class really is different with and without this structure
+
+A common misconception about overfitting is that it is caused by noise. But severe overfitting can occur even in the absence of noise. 
+The problem of multiple testing is closely related to overfitting
+A better approach is to control the fraction of falsely accepted non-null hypotheses, known as the false discovery rate. 
+
+A common misconception is that gathering more features never hurts, since at worst they provide no new information about the class. But in fact their benefits may be outweighed by the curse of dimensionality
+
+The main role of theoretical guarantees in machine learning is not as a criterion for practical decisions, but as a source of understanding and driving force for algorithm design
+
+Whats makes the difference between whether a machine learning project succeeds or fails is the features used. Learning is easy if you have many independent features that each correlate well with the class. On the other hand, if the class is a very complex function of the features, you may not be able to learn it. Often, the raw data is not in a form that is amenable to learning, but you can construct features from it that are. 
+
+An imporpant point to note is that a dumb algorithm with lots and lots of data beats a clever one with modest amounts of it.
+
+## Exercise 3
+
+The formula to check if a point falls within a circle or not is given below:
+
+$$d = \sqrt{(x_{p} - x_{c})^2 - (y_{p} - y_{c})^2} - r$$
+When d < 0, $(x_{p}, y_{p})$ falls within the circle. 
+
+When d = 0, $(x_{p}, y_{p})$ falls on the circle. 
+
+When d > 0, $(x_{p}, y_{p})$ falls outside the circle. 
+
+For the 5 points, (2.8;2.8), (3;3), (6;6), (4;8), (9;9), The distances and scores are given below:
+
+(2.8;2.8)
+```{r dist_calc, echo=TRUE}
+distance_calc <- function(x, y, xc=5, yc=5) {
+  sqrt(((x - xc)^2) + ((y-yc)^2))
+}
+
+distance_score <- function (x, y, radius=3) {
+  distance <- distance_calc(x, y)
+  distance - radius
+}
+
+distance_score(2.8, 2.8)
+```
+
+(3;3)
+```{r echo=TRUE}
+distance_score(3, 3)
+```
+
+(6;6)
+```{r echo=TRUE}
+distance_score(6, 6)
+```
+
+(4;8)
+```{r echo=TRUE}
+distance_score(4, 8)
+```
+
+(9;9)
+```{r echo=TRUE}
+distance_score(9, 9)
+```
+
+From these results, points (6;6) and (3;3) fall inside the circle, while the 3 other points fall outside the circle. Also based on the distance scores, points (2.8;2.8) and (4;8) are very close to the circle curve while point (9;9) is quite far from the circle curve.
+
+
+## Exercise 4-5
+
+For this exercise, I created functions to generate the random data, 20, 50 and 100 random data. Also, I created a function to generate the map area with the necessary points in steps of 0.5 for both X and Y axis. I then created functions to train the classifiers for Decision Tree, Random Forest, SVM Linear and SVM Polynomial.
+
+```{r echo=TRUE}
+generatePoints <- function(num_of_points, minVal=0, maxVal=10) {
+  x_list <- round(runif(num_of_points, minVal, maxVal), digits = 1)
+  y_list <- round(runif(num_of_points, minVal, maxVal), digits = 1)
+  return(data.frame(x=x_list, y=y_list))
+}
+
+labelPoints <- function(rw) {
+  d_score = distance_score(rw[1], rw[2])
+  label <- ifelse(d_score > 0, "negative", "positive")
+  #color <- ifelse(d_score > 0, "red", "blue")
+  return(data.frame(x=rw[1], y=rw[2], score=d_score, label=label))
+}
+
+getTestData <- function() {
+  cnt = 1
+  datalist = list()
+  for (i in seq(0.5, 10, by = 0.5)) {
+    for (j in seq(0.5, 10, by = 0.5)) {
+      d_score = distance_score(i, j)
+      dat <- data.frame(x = i, y = j, score = d_score) 
+      cnt = cnt + 1
+      datalist[[cnt]] <- dat
+    }
+  }
+  
+  test_data <- do.call(rbind, datalist)
+}
+
+points_20 <- generatePoints(20)
+points_50 <- generatePoints(50)
+points_100 <- generatePoints(100)
+
+labelled_points_20 <- do.call(rbind, apply(points_20, 1, labelPoints))
+labelled_points_50 <- do.call(rbind, apply(points_50, 1, labelPoints))
+labelled_points_100 <- do.call(rbind, apply(points_100, 1, labelPoints))
+
+trainAndTestJ48 <- function(train_data) {
+  # Train the classifier
+  j48_model <- J48(label~., data=train_data)
+  j48_classifier <- evaluate_Weka_classifier(j48_model, numFolds = 5, class = TRUE)
+  test_data <- getTestData()
+  j48_test_predict <- predict(j48_model, test_data)
+  test_data[,'label'] = j48_test_predict
+  return(test_data)
+}
+
+trainAndTestRF <- function(train_data) {
+  rf_model <- randomForest(label ~ ., data=train_data)
+  test_data <- getTestData()
+  rf_test_predict <- predict(rf_model, test_data)
+  test_data[,'label'] = rf_test_predict
+  return(test_data)
+}
+
+trainAndTestSvmPoly <- function(train_data) {
+  svm_model <- svm(label ~ ., data=train_data, kernel="polynomial",gama=1,cost=1)
+  test_data <- getTestData()
+  svm_test_predict <- predict(svm_model, test_data)
+  test_data[,'label'] = svm_test_predict
+  return(test_data)
+}
+
+trainAndTestSvmLinear <- function(train_data) {
+  svm_model <- svm(label ~ ., data=train_data, kernel="linear")
+  test_data <- getTestData()
+  svm_test_predict <- predict(svm_model, test_data)
+  test_data[,'label'] = svm_test_predict
+  return(test_data)
+}
+```
+
+### Decision Tree Plot
+
+#### 20 ramdom data
+
+The first graph from the decision tree for 20 random data is shown below:
+
+```{r dec_tree_20, echo=TRUE}
+j48_label_points_20 = trainAndTestJ48(labelled_points_20)
+
+palette(c("red","blue"))
+plot(j48_label_points_20$x, j48_label_points_20$y, col=j48_label_points_20$label, pch=19, xlab = "X value", ylab = "Y value", main = "Decision tree plot, trainer with 20 random data")
+```
+
+#### 50 ramdom data
+
+The second graph from the decision tree trained with 50 random data is shown below:
+
+```{r dec_tree_50, echo=TRUE}
+j48_label_points_50 = trainAndTestJ48(labelled_points_50)
+
+palette(c("red","blue"))
+plot(j48_label_points_50$x, j48_label_points_50$y, col=j48_label_points_50$label, pch=19, xlab = "X value", ylab = "Y value", main = "Decision tree plot, trainer with 50 random data")
+```
+
+#### 100 ramdom data
+
+The third graph from the decision tree trained with 100 random data is shown below:
+
+```{r dec_tree_100, echo=TRUE}
+j48_label_points_100 = trainAndTestJ48(labelled_points_100)
+
+palette(c("red","blue"))
+plot(j48_label_points_100$x, j48_label_points_100$y, col=j48_label_points_100$label, pch=19, xlab = "X value", ylab = "Y value", main = "Decision tree plot, trainer with 100 random data")
+```
+
+
+### Random Forest
+
+#### 20 Random data
+
+The first graph from the RandomForest trained with 20 random data is shown below:
+
+```{r rand_forest_20, echo=TRUE}
+rf_label_points_20 = trainAndTestRF(labelled_points_20)
+
+palette(c("red","blue"))
+plot(rf_label_points_20$x, rf_label_points_20$y, col=rf_label_points_20$label, pch=19, xlab = "X value", ylab = "Y value", main = "RandomForest plot, trainer with 20 random data")
+```
+
+#### 50 Random data
+
+The second graph from the RandomForest trained with 50 random data is shown below:
+
+```{r rand_forest_50, echo=TRUE}
+rf_label_points_50 = trainAndTestRF(labelled_points_50)
+
+palette(c("red","blue"))
+plot(rf_label_points_50$x, rf_label_points_50$y, col=rf_label_points_50$label, pch=19, xlab = "X value", ylab = "Y value", main = "RandomForest plot, trainer with 50 random data")
+```
+
+#### 100 Random data
+
+The third graph from the RandomForest trained with 50 random data is shown below:
+
+```{r rand_forest_100, echo=TRUE}
+rf_label_points_100 = trainAndTestRF(labelled_points_100)
+
+palette(c("red","blue"))
+plot(rf_label_points_100$x, rf_label_points_100$y, col=rf_label_points_100$label, pch=19, xlab = "X value", ylab = "Y value", main = "RandomForest plot, trainer with 100 random data")
+```
+
+
+### SVM with Polynomial Kernel
+
+#### 20 Random data
+
+The first graph from the SVM Polynomial Kernel trained with 20 random data is shown below:
+
+```{r svm_poly_20, echo=TRUE}
+svm_poly_label_points_20 = trainAndTestSvmPoly(labelled_points_20)
+
+palette(c("red","blue"))
+plot(svm_poly_label_points_20$x, svm_poly_label_points_20$y, col=svm_poly_label_points_20$label, pch=19, xlab = "X value", ylab = "Y value", main = "SVM with Polynomial Kernel plot, trainer with 20 random data")
+```
+
+
+#### 50 Random data
+
+The second graph from the SVM Polynomial Kernel trained with 50 random data is shown below:
+
+```{r svm_poly_50, echo=TRUE}
+svm_poly_label_points_50 = trainAndTestSvmPoly(labelled_points_50)
+
+palette(c("red","blue"))
+plot(svm_poly_label_points_50$x, svm_poly_label_points_50$y, col=svm_poly_label_points_50$label, pch=19, xlab = "X value", ylab = "Y value", main = "SVM with Polynomial Kernel plot, trainer with 50 random data")
+```
+
+
+#### 100 Random data
+
+The third graph from the SVM Polynomial Kernel trained with 100 random data is shown below:
+
+```{r svm_poly_100, echo=TRUE}
+svm_poly_label_points_100 = trainAndTestSvmPoly(labelled_points_100)
+
+palette(c("red","blue"))
+plot(svm_poly_label_points_100$x, svm_poly_label_points_100$y, col=svm_poly_label_points_100$label, pch=19, xlab = "X value", ylab = "Y value", main = "SVM with Polynomial Kernel plot, trainer with 100 random data")
+```
+
+
+### SVM with Linear Kernel
+
+#### 20 Random data
+
+The first graph from the SVM Linear Kernel trained with 20 random data is shown below:
+
+```{r svm_linear_20, echo=TRUE}
+svm_linear_label_points_20 = trainAndTestSvmLinear(labelled_points_20)
+
+palette(c("red","blue"))
+plot(svm_linear_label_points_20$x, svm_linear_label_points_20$y, col=svm_linear_label_points_20$label, pch=19, xlab = "X value", ylab = "Y value", main = "SVM with Linear Kernel plot, trainer with 20 random data")
+```
+
+
+#### 50 Random data
+
+The second graph from the SVM Linear Kernel trained with 50 random data is shown below:
+
+```{r svm_linear_50, echo=TRUE}
+svm_linear_label_points_50 = trainAndTestSvmLinear(labelled_points_50)
+
+palette(c("red","blue"))
+plot(svm_linear_label_points_50$x, svm_linear_label_points_50$y, col=svm_linear_label_points_50$label, pch=19, xlab = "X value", ylab = "Y value", main = "SVM with Linear Kernel plot, trainer with 50 random data")
+```
+
+
+#### 100 Random data
+
+The third graph from the SVM Linear Kernel trained with 100 random data is shown below:
+
+```{r svm_linear_100, echo=TRUE}
+svm_linear_label_points_100 = trainAndTestSvmLinear(labelled_points_100)
+
+palette(c("red","blue"))
+plot(svm_linear_label_points_100$x, svm_linear_label_points_100$y, col=svm_linear_label_points_100$label, pch=19, xlab = "X value", ylab = "Y value", main = "SVM with Linear Kernel plot, trainer with 100 random data")
+```
+
+ 
+

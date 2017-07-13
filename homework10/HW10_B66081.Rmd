@@ -1,0 +1,156 @@
+---
+title: "Homework 10"
+author: "Victor Aluko"
+date: "May 2, 2017"
+output:
+  html_document:
+    code_folding: hide
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Exercise 1
+
+From the graph plot, the points could first be analyzed and clustered together by the shortest distance of the points. This would give a grouping as shown in the image below:
+
+![Initial Cluster Grouping](C:/devstore/data_mining/homework10/Hierachy_clusters.png)
+
+Based on these grouping clusters, 5 clusters are produced and then used for the Hierarchical clustering. The process of manully solving the hierarchical cluster is given in the images below:
+
+![Hierarchy cluster part 1](C:/devstore/data_mining/homework10/hierarchy_page1.jpg)
+
+![Hierarchy cluster part 2](C:/devstore/data_mining/homework10/hierarchy_page2.jpg)
+
+First I calculated the shortest distance between the clusters. The cluster pair with the shortest distance between them was then merged together and the process repeated. This was continued until only clusters 1 and 2-3-4-5 remained. This was how the pairs of S-T and A-B-C...-Q-R was obtained.
+
+
+The final dendrogram tree generated is given below:
+
+![Hierarchy cluster Tree](C:/devstore/data_mining/homework10/hierarchy_tree.jpg)
+
+
+## Exercise 2
+
+For this task, it was manually done starting from the reference clusters which were given. The cluster points are as follows:
+
+Cluster | Point
+------- | --------
+  C1    |    A
+  C2    |    C
+  C3    |    F
+  C4    |    M
+  
+From this table, manual calculation was first done as follows:
+
+For each point (B, D, E, G, ... L, N, ..., T), the Eucledian distance of the point to each cluster was calculated. The point was then assigned to the cluster which had the shortest distance. This was continuously done until all the points were separated among the 4 clusters. The initial calculations for the Eucledian distances and the points is shown below:
+
+![KMean cluster page 1](C:/devstore/data_mining/homework10/kmeans_page1.jpg)
+
+![KMean cluster page 2](C:/devstore/data_mining/homework10/kmeans_page2.jpg)
+
+After this was done, the following clusters were obtained:
+
+Cluster | Points           | Mean Point
+------- | ---------------- | -----------
+  C1    |  A D N P         | (3.5, 5.39)
+  C2    |  C O S T         | (1.1, 2.35)
+  C3    |  B F I J         | (3.78, 2.25)
+  C4    |  E G H K L M R Q | (6.095,2.315)
+  
+In order to ensure balance, the distance from each point to each of the centroids was then calculated. These produced the table shown below:
+
+![KMean Distance verification](C:/devstore/data_mining/homework10/kmean_eucledian_1.png)
+
+The 1st iteration of Euclidean distance shows that some points are close to cluster C1 than the initial clusters they were placed into. These points are highlighted in orange colour as shown above. The points are the moved to CLuster C1 and the KMean cluster produced is given below:
+
+Cluster | Points           | Mean Point
+------- | ---------------- | -----------
+  C1    |  A C D F M N P   | (3.325, 5.3875)
+  C2    |  S T             | (0.65, 1.35)
+  C3    |  B I J           | (3.67, 1.83)
+  C4    |  E G H K L R Q   | (6.55,2.5)
+  
+After this cluster table is produced, the distance from the points to the clusters are then canclated again. This now gives the table in the image below:
+
+![KMean Distance 2nd iteration](C:/devstore/data_mining/homework10/kmean_eucledian_2.png)
+
+In this second iteration, we see that all the points correctly fall into the clusters as they should be. Therefore, there is no need for another iteration beyond this. The final cluster table produced is as follows:
+
+Cluster | Points           | Mean Point
+------- | ---------------- | -----------
+  C1    |  A C D F M N P   | (3.325, 5.3875)
+  C2    |  S T             | (0.65, 1.35)
+  C3    |  B I J           | (3.67, 1.83)
+  C4    |  E G H K L R Q   | (6.55,2.5)
+  
+## Exercise 3
+
+For this task, I performed a Kmeans cluster analysis on the data, I varied the clusters from 30 to 100. I eventually settled for cluster size of 65 since it gave me a result which was not perfect but still usable. The output from cluster size of 65 is below:
+
+![KMean cluster](C:/devstore/data_mining/homework10/kmeans_cluster_img.png)
+
+## Exercise 4
+
+### Data analysis techniques used throughout the analysis
+
+The data analysis techniques used in the analysis are as follows:
+
+1. __PostgreSQL and PostGIS__: PostgreSQL was used as the data store to store the full dataset of 267 GB while PostGIS was used to perform geographic calculations
+
+2. __Maps__: 
+    + __Maps__: Maps were used to represent the entire dataset of pickups and drop offs from 2009.
+    + __Google Map__: Google Maps was used to estimate the travel time from pickup to drop off location. 
+    + __Animated Map__: The animated map gave a clustering of the pick up points in recent years. It also gave an idea of recent businesses to open over the past couple of years
+    + __Dot Maps__: These gave representations of each taxi ride. More fine grained detail replresentation
+
+3. __Charts__: 
+    + __Bar Charts__: Bar chart was used to represent the impact of weather conditions on Taxi ride bookings. The Bar chart of Snowfall and Rainfall gave a representation of the impact of these weather conditions on average ride trips
+    + __Histogram__: Histogram was used to represent the taxi drop off histories 
+  
+4. __Graphs__:
+    + __Time series graph__: Time series graphs were used to represent the airport travel times from given neighbourhoods. This was useful in understanding the travel times.
+    + __Line Graph__: Line graph was used to represent the trend of pickups in Brooklyn. It was useful for analyzing the pickup trends for the last 28 days of each year over 7 years.
+  
+5. __Data Table__: This was also used to represent the impact of snowfall and rainfall on taxi ride trends.
+
+### Potential Business needs and cases
+
++ The migration trends over time would be useful in helping Uber determine where to expect large demands and where to focus more investments into.
++ Understanding the change in travel behaviours will help understand the increase in demand for taxis, and this would in turn help Uber to make decisions towards its target audience
++ It also shows the growth patterns of taxi systems and the aspects to focus on to ensure more travel trips.
++ There are move avenues for Uber to expand into. These areas include focus on areas of increased population, traffic structure and styles of living. These will definitely impact on pick ups
+
+## Exercise 5
+
+The project idea developed is about __Analysis of Student Performance Dataset__. The dataset to be used can be found here: [Student Dataset](https://archive.ics.uci.edu/ml/datasets/Student+Performance). 
+
+### Goals 
+
+The goal of the project are listed below:
+
+1. Build a classifier to predict the probability of a student failing or passing Maths and Portuguese
+2. Predict which major attributes affect student results.
+3. Classify student pass and fail rates by the attributes of their guardians (father or mother, guardian's job, education etc.)
+
+We intend to try out the classifier techniques previous taught during the study of this course and we hope to get some interesting results. Also we would visualize the data using different visualization techniques until we get one which is satisfactory
+
+### Expected Results:
+
+We can not always predict what we would get before performing a data anylysis, however we hope to achieve the following:
+
+1. Have a clear idea of the probabilities of whether the student would pass or fail.
+2. Visual representation demonstrating the attributes that mostly affect a student's performance.
+3. Predict student pass or fail rate by the attributes of their guardians
+
+These goals will expected results will guide us on where to focus our research and what to acheive.
+
+### Estimated Team size
+
+A team of four is required with estimated completion time of three weeks. Already we have the 4 members of the group and we will kickstart the project soonest.
+
+
+
+
+

@@ -1,0 +1,198 @@
+---
+title: "homework11"
+author: "Vicvtor Aluko"
+date: "May 10, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r includes}
+
+library(ggplot2)
+
+```
+
+## Exercise 1
+
+For this task I used the filters to filter out the data for 3 counties; Tartu, Tallinn and Parnu. I used Microsoft Excel to complete the task. For each of the counties, I first filtered by the column for business type  (Column C).  SO based on the 7 Business Types, I used Sort to get the Business names with the highest values in the Number of Employees, Turnover, Emplyee Taxes and All Taxes columns. Also, because some columns contained null values, I had to filter out the null values and use only the available values in the numeric columns
+
+Detailed breakdown of the results of the study are as follows:
+
+### Äriühing 
+
+#### Harjumaa/Tallinn
+
+In the Äriühing business type, All purpose stores Like Maxima, Rimi and Selver had the highest number of employees as indicated in the image below
+
+![Tallinn Ariuhing Highest Employee Companies](C:/devstore/DM/hw11/imgs/Tallinn_Ariuhing_employee_size.png)
+
+Companies like Telia, Maxima, SEB Bank and G4S were also amoung the highest when I filtered by highest employee taxes
+
+![Tallinn Ariuhing Highest Employee Taxes Companies](C:/devstore/DM/hw11/imgs/Tallinn_Ariuhing_employee_taxes.png)
+
+While Ericsson Eesti and Eesti Energia were the companies with the highest turnovers.
+
+![Tallinn Ariuhing Highest Turnover Companies](C:/devstore/DM/hw11/imgs/Tallinn_Ariuhing_turnover.png)
+
+We can also see that Maxima, Rimi and Selver were among the top 10 highest turnover companies. Hence we can conclude that **Maxima Eesti**, **Rimi Eesti Food** and **Selver AS** are the largest companies in the **Äriühing** business type category
+
+#### Tartu
+
+In this business type for Tartu county, **Tartu Terminal** was the largest company in terms of turnover while **ENICS EESTI AS** was the largest company in terms of number of employees. However, **PLAYTECH ESTONIA, OÜ** was consistently present in the top 10 across all 4 criteria, hence making it the one of the biggest companies in Tartu 
+
+![Tartu Ariuhing Largest Turnover Companies](C:/devstore/DM/hw11/imgs/Tartu_Ariuhing_turnover.png)
+
+
+#### Parnu
+
+In the Parnu county, the 2 consistently largest companies across all fieds are **WENDRE AS** and **SCANFIL OÜ**
+
+![Parnu Valitsus Largest Companies](C:/devstore/DM/hw11/imgs/Parnu_valitsus.png)
+
+### Eestis asuv rahvusvaheline organisatsioon
+
+In this Business type, only 2 companies exist, 1 in Harjumaa and 1 in Tartu. Hence its difficult to make any inferences
+
+### Valitsus- ja riigiasutus
+
+#### Tartu
+
+In Tartu county, **Tartu Ulikooli** was the largest company, in filters of number of employees, turnover and tax. **TARTU LINNAVALITSUS** was next.
+
+![Tartu Valitsus Largest Companies](C:/devstore/DM/hw11/imgs/Tartu_valitsus.png)
+
+#### Parnu
+
+In Parnu, the largest companies in this business type are **PÄRNU LINNAVALITSUS** and **PÄRNUMAA KUTSEHARIDUSKESKUS**. They had the highest values across all 4 possible filters
+
+![Parnu Valitsus Largest Companies](C:/devstore/DM/hw11/imgs/Parnu_valitsus.png)
+
+#### Harjumaa/Tallinn
+
+For Tallinn in this business type, The largest companies by turnover were also among the largest companies by number of employees. **SISEMINISTEERIUM**, **KAITSEMINISTEERIUM** and **RIIGIMETSA MAJANDAMISE KESKUS (RMK)** had the highest turnovers and they were among the top 10 companies with highest number of employees
+
+![Parnu Valitsus Largest Companies](C:/devstore/DM/hw11/imgs/Tallinn_valitsus.png)
+
+
+## Exercise 2
+
+For this exercise, I used the pivot table in Excel to generate the data. I was able to generate pivot table. Based on the pivot tables, the information generated for each county are as follows:
+
+County  | Number of Entities | Average num of Employees | Total all tax per company   | Average Employee Tax per company
+------- | ------------------ | ------------------------ | --------------------------- | --------------------------------
+Tartu   |     12848          |    5.779973547           |     186071310.3             |      8333.46 	
+Tallinn |     67372          |    5.888855905           |    1631910994               |     10934.58848
+Parnu   |     6620           |    4.565558912           |      53190853.54            |      5427.074841
+
+The pivotal tables for all each of the 3 counties are shown below:
+
+Tartu: 
+
+![Tartu Pivotal Table](C:/devstore/DM/hw11/imgs/Tartu_pivot_table.png)
+
+Tallinn:
+
+![Tallinn Pivotal Table](C:/devstore/DM/hw11/imgs/Tallinn_pivot_table.png)
+
+PArnu:
+
+![Parnu Pivotal Table](C:/devstore/DM/hw11/imgs/Parnu_pivot_table.png)
+
+
+## Exercise 3
+
+For this task, I used Excel to first get only the filter and get only the rows that had All Tax between 1M and 2M. After that I deleted Columns which were not relevant to this analysis. I then renamed the columns names from Estonain to English labels.
+
+For the records with empty cells, I set 0.01 for these cells in order to avoid empty/null values. I also excluded the number of employees column in the clustering as it was causing errors.
+
+```{r kmeans_calc, echo=TRUE}
+companies2 <- read.csv("C:/devstore/DM/hw11/companies_2.csv", header = TRUE, sep = ",")
+companiesKmean <- kmeans(companies2[,4:6], centers = 5)
+
+companiesKmean$cluster <- as.factor(companiesKmean$cluster)
+
+```
+
+The visualization using ggplot for Turnover vs EmployeeTax with the clustering is given below
+
+```{r gg_turnover}
+ggplot(companies2, aes(CompanyName, Turnover, color = companiesKmean$cluster)) + geom_point()
+```
+
+This gives a wide distribution. So I plotted using company name vs EmployeeTax
+
+```{r gg_employeetax}
+ggplot(companies2, aes(CompanyName, EmployeeTax, color = companiesKmean$cluster)) + geom_point()
+```
+
+The above visualization gave a much better clustering than the initial plot
+
+
+## Exercise 4
+
+PCA stands for Principal Components Analysis. PCA is a linear transformation analysis. It finds directions of maximum variance of the data. It also finds directions that are mutually orthogonal and It is a statistical process which uses an orthogonal transformation in order to convert a set of correlated variables into a set of values of linearly uncorrelated variables called principal components.
+
+Given a plot of a data set, PCA algorithm would first find the direction of the maximum variance, which is diagonal or at 45 degrees to the x-axis, and then it would find the direction of the mutually orthogonal line or the line perpendicular to the original line
+
+## Exercise 5
+
+For this exercise, I tried to solve it but I had some errors along the way. I have added my code for reference purpose because I couldnt figure out what i was doing wrong
+
+```{r pca_code}
+companyPca = prcomp(scale(companies2[4:6]))
+companyScores = companyPca$x
+
+# Using the first 2 PC
+lmCompany = lm(formula = companies2$Employees ~ companyScores[,1:2])
+
+plot(companies2$Employees, predict(lmCompany))
+```
+
+
+## Exercise 7
+
+#### Project title : Recipes by Rating and Nutrition
+
+#### Goals 
+
+1. Build a model to rate food by its nutritional benefits.
+
+2. Build a model to generate new recipes from existing recipes
+
+3. Predict meals for different category of people such as students,   working class people, athletes, gym go-ers.
+
+#### Source Data
+
+https://www.kaggle.com/hugodarwood/epirecipes/version/1 
+
+
+#### Analysis methods
+Both predictive and descriptive methods. Use descriptive methods to classify the eating habits of different people such as students, work-class and gym go-ers. Some possible task are: 
+
+* Exploratory analysis
+
+* Linear classification
+
+* Machine learning techniques such as linear regression, random forest, etc. 
+
+#### Expected results
+
+1. Having rating for the nutritional benefits of food.
+
+2. Visual representation demonstrating the nutritional facts associated to food.
+
+3. Predict meals and analyse food consumption so as to know which food items have high requirements. This can be a beneficial information for upcoming and existing restaurants and supermarkets.
+
+
+#### Estimated team size / required time
+
+A team of four is required with estimated completion time of three weeks.
+
+#### Project description URL:
+
+https://docs.google.com/presentation/d/1JrCE0O0R3kRLt8jjrO4dO1LKySJ6WyOFeM9i23W37h4/edit#slide=id.g1d8ebd3a03_0_78
+
+
